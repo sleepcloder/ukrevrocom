@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization');
 
-    const response = await fetch(`${BACKEND_URL}/api/auth/me`, {
+    const response = await fetch(`${BACKEND_URL}/api/units`, {
       headers: authHeader ? { Authorization: authHeader } : {},
     });
 

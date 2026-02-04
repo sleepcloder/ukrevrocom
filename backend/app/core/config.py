@@ -21,9 +21,8 @@ class Settings(BaseSettings):
         "http://localhost:3333",
     ]
 
-    # External API (placeholder)
-    EXTERNAL_API_URL: str = ""
-    EXTERNAL_API_KEY: str = ""
+    # Wialon API
+    WIALON_TOKEN: str = "1f2770c21eab663fa29c1a7fe0a079d8E2CE46469EA1B67B7BCBDD64FCBD016C7EAF2DCE"
 
     class Config:
         env_file = ".env"

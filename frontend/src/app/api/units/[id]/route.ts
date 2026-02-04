@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const BACKEND_URL = 'http://127.0.0.1:8888';
 
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
+    const { id } = await params;
     const authHeader = request.headers.get('authorization');
 
-    const response = await fetch(`${BACKEND_URL}/api/auth/me`, {
+    const response = await fetch(`${BACKEND_URL}/api/units/${id}`, {
       headers: authHeader ? { Authorization: authHeader } : {},
     });
 

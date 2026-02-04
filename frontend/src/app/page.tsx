@@ -13,7 +13,6 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Если уже авторизован - редирект на dashboard
     if (apiClient.isAuthenticated()) {
       router.push('/dashboard');
     }
@@ -35,33 +34,38 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="w-full max-w-md">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+    <div className="min-h-screen flex items-center justify-center bg-[#f5f5f5]">
+      <div className="w-full max-w-md px-4">
+        <div className="bg-white rounded-2xl shadow-sm p-8">
           {/* Logo */}
           <div className="flex justify-center mb-8">
             <Image
               src="/logo.svg"
               alt="UkrEvrokom"
-              width={206}
-              height={37}
+              width={220}
+              height={40}
               priority
             />
           </div>
 
+          {/* Title */}
+          <h1 className="text-xl font-bold text-[#32373c] text-center mb-6">
+            Вхід в систему моніторингу
+          </h1>
+
           {/* Error Message */}
           {error && (
-            <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 rounded-lg text-sm">
+            <div className="mb-6 p-4 bg-[#fee2e2] border border-[#fecaca] text-[#dc2626] rounded-xl text-sm font-medium">
               {error}
             </div>
           )}
 
           {/* Login Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label
                 htmlFor="username"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                className="block text-sm font-semibold text-[#32373c] mb-2"
               >
                 Логін
               </label>
@@ -71,7 +75,7 @@ export default function Home() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#32373c] focus:border-transparent transition-all duration-200 text-[#32373c]"
                 placeholder="Введіть логін"
               />
             </div>
@@ -79,7 +83,7 @@ export default function Home() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                className="block text-sm font-semibold text-[#32373c] mb-2"
               >
                 Пароль
               </label>
@@ -89,7 +93,7 @@ export default function Home() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#32373c] focus:border-transparent transition-all duration-200 text-[#32373c]"
                 placeholder="Введіть пароль"
               />
             </div>
@@ -97,12 +101,12 @@ export default function Home() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 bg-[#3772FF] hover:bg-[#2860e6] disabled:bg-[#6b9aff] text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="w-full py-3.5 px-4 bg-[#32373c] hover:bg-[#1a1d20] disabled:bg-gray-400 text-white font-semibold rounded-full transition-all duration-200 shadow-sm hover:shadow-md mt-2"
             >
               {isLoading ? (
-                <span className="flex items-center justify-center">
+                <span className="flex items-center justify-center gap-2">
                   <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    className="animate-spin h-5 w-5 text-white"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -129,6 +133,11 @@ export default function Home() {
             </button>
           </form>
         </div>
+
+        {/* Footer */}
+        <p className="text-center text-sm text-gray-500 mt-6">
+          © {new Date().getFullYear()} UkrEvrokom. Всі права захищені.
+        </p>
       </div>
     </div>
   );
