@@ -39,23 +39,19 @@ interface Unit {
   is_activated: boolean;
 }
 
-interface SensorData {
-  fuel_level: number;
-  fuel_level_2: number;
-  fuel_consumption: number;
-  engine_rpm: number;
-  coolant_temp: number;
-  engine_hours_lmsg: number;
-  ignition: number;
-  pwr_ext: number;
-  pwr_int: number;
-  gsm_signal: number;
-  adc1: number;
-  adc2: number;
-  adc3: number;
-  adc4: number;
-  hdop: number;
-  mileage_lmsg: number;
+interface Parameter {
+  name: string;
+  value: number | string | null;
+  last_update: string | null;
+}
+
+interface Sensor {
+  id: number;
+  name: string;
+  type: string;
+  param: string;
+  description: string;
+  unit: string;
 }
 
 interface UnitDetail extends Unit {
@@ -64,8 +60,8 @@ interface UnitDetail extends Unit {
   phone2: string;
   uid: string;
   uid2: string;
-  sensors: Record<string, { type: string; param: string; description: string }>;
-  sensor_data: SensorData;
+  sensors: Sensor[];
+  parameters: Parameter[];
   icon: string;
 }
 
@@ -159,4 +155,4 @@ class ApiClient {
 }
 
 export const apiClient = new ApiClient();
-export type { LoginCredentials, AuthResponse, User, Unit, UnitDetail, UnitsResponse, SensorData };
+export type { LoginCredentials, AuthResponse, User, Unit, UnitDetail, UnitsResponse, Parameter, Sensor };

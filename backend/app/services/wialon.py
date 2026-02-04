@@ -96,18 +96,8 @@ class WialonService:
         if not await self.ensure_session():
             return None
 
-        # Get all available data for the unit
-        flags = (
-            self.FLAG_BASE |
-            self.FLAG_CUSTOM_PROPS |
-            self.FLAG_CUSTOM_FIELDS |
-            self.FLAG_IMAGE |
-            self.FLAG_LAST_MSG |
-            self.FLAG_SENSORS |
-            self.FLAG_COUNTERS |
-            self.FLAG_CONNECTION |
-            self.FLAG_POSITION
-        )
+        # Get all available data for the unit (maximum flags)
+        flags = 4194303  # 0x3FFFFF - all flags for maximum data
 
         params = {
             "id": unit_id,
@@ -131,38 +121,28 @@ class WialonService:
         last_time = pos.get("t", 0)
         is_online = (datetime.utcnow().timestamp() - last_time) < 600 if last_time else False
 
-        # Get counters (mileage, engine hours) - cfl can be dict or int
-        counters = item.get("cfl", {})
-        if isinstance(counters, dict):
-            mileage = counters.get("cnm", 0)
-            engine_hours = counters.get("cneh", 0)
-        else:
-            mileage = 0
-            engine_hours = 0
+        # Get counters
+        mileage = item.get("cnm", 0)
+        engine_hours = item.get("cneh", 0)
 
-        # Get last message parameters (sensor readings)
-        lmsg = item.get("lmsg") or {}
-        lmsg_params = lmsg.get("p") or {}
+        # Get all parameters from prms (tracker data)
+        prms = item.get("prms") or {}
+        parameters = []
+        for param_name, param_data in prms.items():
+            if isinstance(param_data, dict):
+                value = param_data.get("v")
+                # Convert timestamp to readable date
+                ct = param_data.get("ct", 0)
+                last_update = datetime.fromtimestamp(ct).strftime("%d.%m.%Y, %H:%M:%S") if ct else None
 
-        # Extract sensor values from last message
-        sensor_data = {
-            "fuel_level": lmsg_params.get("fuel_level", lmsg_params.get("fuel1", lmsg_params.get("adc1", 0))),
-            "fuel_level_2": lmsg_params.get("fuel_level_2", lmsg_params.get("fuel2", lmsg_params.get("adc2", 0))),
-            "fuel_consumption": lmsg_params.get("fuel_consumption", 0),
-            "engine_rpm": lmsg_params.get("engine_rpm", lmsg_params.get("rpm", 0)),
-            "coolant_temp": lmsg_params.get("coolant_temp", lmsg_params.get("engine_temp", 0)),
-            "engine_hours_lmsg": lmsg_params.get("engine_hours", 0),
-            "ignition": lmsg_params.get("ignition", lmsg_params.get("in1", 0)),
-            "pwr_ext": lmsg_params.get("pwr_ext", lmsg_params.get("pwr", 0)),
-            "pwr_int": lmsg_params.get("pwr_int", 0),
-            "gsm_signal": lmsg_params.get("gsm", lmsg_params.get("gsm_signal", 0)),
-            "adc1": lmsg_params.get("adc1", 0),
-            "adc2": lmsg_params.get("adc2", 0),
-            "adc3": lmsg_params.get("adc3", 0),
-            "adc4": lmsg_params.get("adc4", 0),
-            "hdop": lmsg_params.get("hdop", pos.get("hd", 0)),
-            "mileage_lmsg": lmsg_params.get("mileage", 0),
-        }
+                parameters.append({
+                    "name": param_name,
+                    "value": value,
+                    "last_update": last_update
+                })
+
+        # Sort parameters by name
+        parameters.sort(key=lambda x: x["name"])
 
         # Get custom fields
         custom_fields = {}
@@ -170,18 +150,21 @@ class WialonService:
             if isinstance(field, dict):
                 custom_fields[field.get("n", "")] = field.get("v", "")
 
-        # Get custom properties
-        custom_props = item.get("prp", {})
-
         # Get sensors configuration
-        sensors_config = {}
+        sensors = []
         for sensor_id, sensor in item.get("sens", {}).items():
             if isinstance(sensor, dict):
-                sensors_config[sensor.get("n", f"sensor_{sensor_id}")] = {
+                sensors.append({
+                    "id": sensor.get("id"),
+                    "name": sensor.get("n", f"sensor_{sensor_id}"),
                     "type": sensor.get("t", ""),
                     "param": sensor.get("p", ""),
                     "description": sensor.get("d", ""),
-                }
+                    "unit": sensor.get("m", ""),
+                })
+
+        # Sort sensors by name
+        sensors.sort(key=lambda x: x["name"])
 
         # Get device info
         device_type = item.get("hw", "")
@@ -190,9 +173,16 @@ class WialonService:
         uid = item.get("uid", "")
         uid2 = item.get("uid2", "")
 
+        # Get engine hours from prms if not in counters
+        if not engine_hours:
+            eh_param = prms.get("engine_hours", {})
+            if isinstance(eh_param, dict):
+                engine_hours = eh_param.get("v", 0)
+
         return {
             "id": item.get("id"),
             "name": item.get("nm", "Unknown"),
+            "is_activated": item.get("act", 0) == 1,
             "latitude": pos.get("y"),
             "longitude": pos.get("x"),
             "speed": pos.get("s", 0),
@@ -201,16 +191,16 @@ class WialonService:
             "satellites": pos.get("sc", 0),
             "last_time": datetime.fromtimestamp(last_time).isoformat() if last_time else None,
             "is_online": is_online,
-            "mileage": mileage if mileage else sensor_data.get("mileage_lmsg", 0),
-            "engine_hours": engine_hours if engine_hours else sensor_data.get("engine_hours_lmsg", 0),
+            "mileage": mileage,
+            "engine_hours": engine_hours,
             "device_type": device_type,
             "phone": phone,
             "phone2": phone2,
             "uid": uid,
             "uid2": uid2,
             "custom_fields": custom_fields,
-            "sensors": sensors_config,
-            "sensor_data": sensor_data,
+            "sensors": sensors,
+            "parameters": parameters,
             "icon": item.get("uri", ""),
         }
 
