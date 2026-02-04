@@ -31,23 +31,19 @@ class UnitResponse(BaseModel):
     is_activated: bool = True
 
 
-class SensorData(BaseModel):
-    fuel_level: float = 0
-    fuel_level_2: float = 0
-    fuel_consumption: float = 0
-    engine_rpm: float = 0
-    coolant_temp: float = 0
-    engine_hours_lmsg: float = 0
-    ignition: float = 0
-    pwr_ext: float = 0
-    pwr_int: float = 0
-    gsm_signal: float = 0
-    adc1: float = 0
-    adc2: float = 0
-    adc3: float = 0
-    adc4: float = 0
-    hdop: float = 0
-    mileage_lmsg: float = 0
+class Parameter(BaseModel):
+    name: str
+    value: Optional[Any] = None
+    last_update: Optional[str] = None
+
+
+class Sensor(BaseModel):
+    id: Optional[int] = None
+    name: str
+    type: str = ""
+    param: str = ""
+    description: str = ""
+    unit: str = ""
 
 
 class UnitDetailResponse(UnitResponse):
@@ -56,8 +52,8 @@ class UnitDetailResponse(UnitResponse):
     phone2: str = ""
     uid: str = ""
     uid2: str = ""
-    sensors: Dict[str, Any] = {}
-    sensor_data: SensorData = SensorData()
+    sensors: List[Sensor] = []
+    parameters: List[Parameter] = []
     icon: str = ""
 
 
