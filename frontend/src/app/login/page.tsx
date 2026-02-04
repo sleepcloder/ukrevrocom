@@ -1,16 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { apiClient } from '@/lib/api';
+
+const REMEMBER_USER_KEY = 'ukrevrocom_remembered_user';
 
 export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Load remembered username on mount
+  useEffect(() => {
+    const rememberedUser = localStorage.getItem(REMEMBER_USER_KEY);
+    if (rememberedUser) {
+      setUsername(rememberedUser);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,6 +31,14 @@ export default function LoginPage() {
 
     try {
       await apiClient.login({ username, password });
+
+      // Save or remove remembered username
+      if (rememberMe) {
+        localStorage.setItem(REMEMBER_USER_KEY, username);
+      } else {
+        localStorage.removeItem(REMEMBER_USER_KEY);
+      }
+
       router.push('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Помилка входу');
@@ -64,6 +84,7 @@ export default function LoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
+                autoComplete="username"
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                 placeholder="Введіть логін"
               />
@@ -82,9 +103,26 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete="current-password"
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
                 placeholder="Введіть пароль"
               />
+            </div>
+
+            <div className="flex items-center">
+              <input
+                id="remember-me"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+              />
+              <label
+                htmlFor="remember-me"
+                className="ml-2 block text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
+              >
+                Запам'ятати мене
+              </label>
             </div>
 
             <button

@@ -1,22 +1,16 @@
 # Frontend Dockerfile - Next.js
 # Multi-stage build for smaller image size
 
-# Stage 1: Dependencies
-FROM node:20-alpine AS deps
-
-WORKDIR /app
-
-# Install dependencies only when needed
-COPY package.json package-lock.json* ./
-RUN npm ci --only=production
-
-# Stage 2: Builder
+# Stage 1: Builder
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy dependencies
-COPY --from=deps /app/node_modules ./node_modules
+# Install dependencies (including dev for build)
+COPY package.json package-lock.json* ./
+RUN npm ci
+
+# Copy source
 COPY . .
 
 # Build arguments
