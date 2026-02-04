@@ -1,0 +1,23 @@
+# Terraform Variables Example
+# Copy this file to terraform.tfvars and fill in your values
+# DO NOT commit terraform.tfvars to git!
+
+aws_region   = "eu-central-1"
+environment  = "production"
+project_name = "ukrevrocom"
+
+# Domain (optional)
+domain_name = "ukrevrocom.example.com"
+
+# EC2 Configuration
+ec2_instance_type = "t4g.micro"
+ec2_key_name      = "ukrevrocom-key"
+
+# RDS Configuration
+db_instance_class = "db.t4g.micro"
+db_name           = "ukrevrocom"
+db_username       = "ukrevrocom_admin"
+
+# VPC Configuration
+vpc_cidr           = "10.0.0.0/16"
+availability_zones = ["eu-central-1a", "eu-central-1b"]

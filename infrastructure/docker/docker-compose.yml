@@ -1,0 +1,87 @@
+# Docker Compose for local development
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: ukrevrocom-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-ukrevrocom}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-localpassword}
+      POSTGRES_DB: ${DB_NAME:-ukrevrocom}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-ukrevrocom}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    container_name: ukrevrocom-backend
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER:-ukrevrocom}:${DB_PASSWORD:-localpassword}@db:5432/${DB_NAME:-ukrevrocom}
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+      - WIALON_TOKEN=${WIALON_TOKEN}
+      - ENVIRONMENT=development
+      - PORT=8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ../../backend:/app:cached
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Next.js Frontend
+  frontend:
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+    container_name: ukrevrocom-frontend
+    restart: unless-stopped
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8000
+      - PORT=3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ../../frontend:/app:cached
+      - /app/node_modules
+      - /app/.next
+
+  # Nginx Reverse Proxy (optional for local testing)
+  nginx:
+    image: nginx:alpine
+    container_name: ukrevrocom-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    profiles:
+      - full
+
+volumes:
+  postgres_data:
+
+networks:
+  default:
+    name: ukrevrocom-network
