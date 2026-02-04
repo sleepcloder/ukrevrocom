@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Use 127.0.0.1 instead of localhost for more reliable connection
-const BACKEND_URL = 'http://127.0.0.1:8888';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://127.0.0.1:8888';
 
 export async function POST(request: NextRequest) {
   console.log('=== Login API Route called ===');
