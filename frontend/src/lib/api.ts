@@ -145,6 +145,48 @@ class ApiClient {
     return response.json();
   }
 
+  async getUnitRaw(id: number): Promise<RawUnitResponse> {
+    const response = await fetch(`/api/units/${id}/raw`, {
+      headers: {
+        ...this.getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to get raw unit data');
+    }
+
+    return response.json();
+  }
+
+  async getFlagsInfo(): Promise<FlagsInfoResponse> {
+    const response = await fetch(`/api/wialon/flags-info`, {
+      headers: {
+        ...this.getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to get flags info');
+    }
+
+    return response.json();
+  }
+
+  async getIgnitionSensors(): Promise<IgnitionSensorsResponse> {
+    const response = await fetch(`/api/sensors/ignition`, {
+      headers: {
+        ...this.getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to get ignition sensors');
+    }
+
+    return response.json();
+  }
+
   logout(): void {
     localStorage.removeItem('token');
   }
@@ -154,5 +196,53 @@ class ApiClient {
   }
 }
 
+interface RawUnitResponse {
+  unit_id: number;
+  flags_used: number;
+  flags_hex: string;
+  raw_data: Record<string, unknown>;
+}
+
+interface FlagInfo {
+  value: number;
+  hex: string;
+  description: string;
+}
+
+interface FlagsInfoResponse {
+  flags: Record<string, FlagInfo>;
+  common_combinations: Record<string, { value: number; description: string }>;
+  response_fields: Record<string, string>;
+}
+
+interface CalibrationPoint {
+  x: number;
+  a: number;
+  b: number;
+}
+
+interface IgnitionSensor {
+  unit_id: number;
+  unit_name: string;
+  sensor_id: number;
+  name: string;
+  type: string;
+  description: string;
+  parameter: string;
+  metric: string;
+  calibration_table: CalibrationPoint[];
+  validator_type: number;
+  validator_sensor_id: number;
+  validator_sensor_name: string;
+  config: Record<string, unknown>;
+  created: number;
+  modified: number;
+}
+
+interface IgnitionSensorsResponse {
+  total: number;
+  sensors: IgnitionSensor[];
+}
+
 export const apiClient = new ApiClient();
-export type { LoginCredentials, AuthResponse, User, Unit, UnitDetail, UnitsResponse, Parameter, Sensor };
+export type { LoginCredentials, AuthResponse, User, Unit, UnitDetail, UnitsResponse, Parameter, Sensor, RawUnitResponse, FlagsInfoResponse, IgnitionSensor, IgnitionSensorsResponse, CalibrationPoint };
