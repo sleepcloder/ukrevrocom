@@ -1,7 +1,10 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// Use Next.js API routes as proxy to backend
+const API_URL = '';
+
+console.log('Using Next.js API proxy');
 
 interface LoginCredentials {
-  email: string;
+  username: string;
   password: string;
 }
 
@@ -12,48 +15,46 @@ interface AuthResponse {
 
 interface User {
   id: number;
-  email: string;
+  username: string;
   full_name: string | null;
   is_active: boolean;
 }
 
 class ApiClient {
-  private baseUrl: string;
-
-  constructor(baseUrl: string) {
-    this.baseUrl = baseUrl;
-  }
-
   private getAuthHeader(): HeadersInit {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const formData = new URLSearchParams();
-    formData.append('username', credentials.email);
+    const formData = new FormData();
+    formData.append('username', credentials.username);
     formData.append('password', credentials.password);
 
-    const response = await fetch(`${this.baseUrl}/api/auth/login`, {
+    const url = `/api/auth/login`;
+    console.log('Login request to:', url);
+
+    const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
       body: formData,
     });
 
+    console.log('Login response status:', response.status);
+
     if (!response.ok) {
       const error = await response.json();
+      console.error('Login error:', error);
       throw new Error(error.detail || 'Login failed');
     }
 
     const data = await response.json();
+    console.log('Login success, token received');
     localStorage.setItem('token', data.access_token);
     return data;
   }
 
   async getMe(): Promise<User> {
-    const response = await fetch(`${this.baseUrl}/api/auth/me`, {
+    const response = await fetch(`/api/auth/me`, {
       headers: {
         ...this.getAuthHeader(),
       },
@@ -75,5 +76,5 @@ class ApiClient {
   }
 }
 
-export const apiClient = new ApiClient(API_URL);
+export const apiClient = new ApiClient();
 export type { LoginCredentials, AuthResponse, User };

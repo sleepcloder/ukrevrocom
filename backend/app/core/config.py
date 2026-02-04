@@ -13,12 +13,12 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     # Database
-    DATABASE_URL: str = "postgresql://user:password@localhost:5432/ukrevrocom"
+    DATABASE_URL: str = "postgresql://admin@localhost:5432/ukrevrocom"
 
     # CORS
     CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
-        "https://localhost:3000",
+        "http://localhost:3333",
     ]
 
     # External API (placeholder)
